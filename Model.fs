@@ -59,13 +59,14 @@ type DbContext(connectionString: string) =
             // Setup tags table
             modelBuilder
                 .Entity<Tag>()
-                .ToTable("gallery_tags")
+                .ToTable("tags")
                 .HasKey(fun gt -> gt.Name :> obj)
                 |> ignore
 
             // Setup gallery tags table
             modelBuilder
                 .Entity<GalleryTag>()
+                .ToTable("gallery_tags")
                 .HasKey(fun gt -> {| Gallery = gt.Gallery; Tag = gt.Tag |} :> obj)
                 |> ignore
 

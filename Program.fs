@@ -12,6 +12,7 @@ let execute () = task {
         { Filename = filename
           Gallery = null
           GalleryNav = Unchecked.defaultof<_> }
+
     let tag name =
         { Name = name
           GalleriesSet = null }
