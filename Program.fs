@@ -1,9 +1,10 @@
 ﻿open System
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open Microsoft.EntityFrameworkCore
 open Model
 
-let execute () = task {
-    use ctx = new DbContext("Data Source=c:/temp/pictures/efpictures.db")
+let insertData connectionString = task {
+    use ctx = new DbContext(connectionString)
 
     let! _ = ctx.Database.EnsureDeletedAsync()
     let! _ = ctx.Database.EnsureCreatedAsync()
@@ -48,7 +49,29 @@ let execute () = task {
     ()
 }
 
+open System.Linq
+
+let queryData connectionString = task {
+  use ctx = new DbContext(connectionString)
+  let q = query {
+      for p in ctx.Pictures.Include(fun x -> x.GalleryNav).ThenInclude(fun x -> x.TagsSet) do
+      let tags = query {
+        for gt in p.GalleryNav.TagsSet do
+        select gt.TagNav.Name
+      }
+      select {| Filename = p.Filename; Gallery = p.GalleryNav.Name; Tags = tags |}
+  }
+  // return! q.ToArrayAsync() // throws exception
+  return q.ToArray()
+}
+
 [<EntryPoint>]
 let main argv =
-    (execute ()).Wait()
+    let connectionString = "Data Source=c:/temp/pictures/efpictures.db"
+    //(insertData connectionString).Wait()
+
+    let pictures = (queryData connectionString).Result
+    for picture in pictures do
+      printfn "%A" picture
+
     0
