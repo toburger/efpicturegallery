@@ -15,7 +15,10 @@ type [<CLIMutable>] Gallery =
 and [<CLIMutable>] Picture =
     { Filename: string
       Gallery: string
-      GalleryNav: Gallery }
+      GalleryNav: Gallery
+      Width: int
+      Height: int
+      Created: DateTimeOffset }
 
 and [<CLIMutable>] Tag =
     { Name: string
