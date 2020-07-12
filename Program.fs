@@ -52,21 +52,6 @@ let insertData connectionString = task {
     ()
 }
 
-let queryData connectionString = task {
-  use ctx = new DbContext(connectionString)
-  let q = query {
-      for p in ctx.Pictures.Include(fun x -> x.GalleryNav).ThenInclude(fun x -> x.TagsSet) do
-      let tags = query {
-        for gt in p.GalleryNav.TagsSet do
-        select gt.TagNav.Name
-      }
-      select {| Filename = p.Filename
-                Gallery = p.GalleryNav.Name
-                Tags = tags |}
-  }
-  return! q.AsAsyncQueryable().ToArrayAsync()
-}
-
 let queryData' connectionString = task {
   use ctx = new DbContext(connectionString)
   let q = query {
@@ -83,7 +68,7 @@ let main argv =
     let connectionString = "Data Source=c:/temp/pictures/efpictures.db"
     (insertData connectionString).Wait()
 
-    let pictures = (queryData connectionString).Result
+    let pictures = (Gallery.getPictures connectionString).Result
     for picture in pictures do
       printfn "%A" picture
 
