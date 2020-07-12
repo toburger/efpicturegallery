@@ -5,6 +5,7 @@ open Microsoft.EntityFrameworkCore
 open Microsoft.Extensions.Logging
 open Microsoft.EntityFrameworkCore.Design
 open System.Collections.Generic
+open Microsoft.EntityFrameworkCore.Storage.ValueConversion
 
 type [<CLIMutable>] Gallery =
     { Name: string
@@ -96,6 +97,25 @@ type DbContext(connectionString: string) =
                 .HasConstraintName("fk_gallery_pictures")
                 .IsRequired(false)
                 |> ignore
+
+            // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
+            // here: https://docs.microsoft.com/en-us/ef/core/providers/sqlite/limitations#query-limitations
+            // To work around this, when the Sqlite database provider is used, all model properties of type DateTimeOffset
+            // use the DateTimeOffsetToBinaryConverter
+            // Based on: https://github.com/aspnet/EntityFrameworkCore/issues/10784#issuecomment-415769754
+            // This only supports millisecond precision, but should be sufficient for most use cases.
+            // Source: https://blog.dangl.me/archive/handling-datetimeoffset-in-sqlite-with-entity-framework-core/
+            for entityType in modelBuilder.Model.GetEntityTypes() do
+                let properties =
+                    entityType.ClrType.GetProperties()
+                    |> Seq.filter (fun p -> p.PropertyType = typeof<DateTimeOffset>
+                                         || p.PropertyType = typeof<Nullable<DateTimeOffset>>)
+                for property in properties do
+                    modelBuilder
+                        .Entity(entityType.Name)
+                        .Property(property.Name)
+                        .HasConversion(DateTimeOffsetToBinaryConverter())
+                        |> ignore
     member self.Galleries = self.Set<Gallery>()
     member self.Pictures = self.Set<Picture>()
 

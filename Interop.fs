@@ -9,11 +9,12 @@ open System.Runtime.CompilerServices
 open System.Threading.Tasks
 open System.Threading
 
-type AsyncEnumerator<'T>(enumerator: IEnumerator<'T>) =
+type private AsyncEnumerator<'T>(enumerator: IEnumerator<'T>) =
   interface IAsyncEnumerator<'T> with
       member _.Current = 
         enumerator.Current
       member _.DisposeAsync() = 
+        enumerator.Dispose()
         ValueTask()
       member _.MoveNextAsync() = 
         ValueTask<_>(enumerator.MoveNext())
