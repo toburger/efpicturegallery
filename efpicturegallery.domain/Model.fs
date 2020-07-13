@@ -37,6 +37,7 @@ type DbContext(connectionString: string) =
             optionsBuilder
                 .UseSqlite(connectionString, fun sqliteOptionsBuilder -> 
                     sqliteOptionsBuilder.CommandTimeout(Nullable 5)
+                                        .MigrationsAssembly("efpicturegallery.migrations")
                     |> ignore)
                 .UseLoggerFactory(LoggerFactory.Create(fun builder ->
                     builder.AddConsole()

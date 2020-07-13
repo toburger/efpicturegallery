@@ -7,7 +7,8 @@ let insertData connectionString = task {
     use ctx = new DbContext(connectionString)
 
     let! _ = ctx.Database.EnsureDeletedAsync()
-    let! _ = ctx.Database.EnsureCreatedAsync()
+    //let! _ = ctx.Database.EnsureCreatedAsync()
+    do! ctx.Database.MigrateAsync() // Implies EnsureCreated
 
     let picture filename =
         { Filename = filename
