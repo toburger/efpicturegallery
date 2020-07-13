@@ -45,13 +45,38 @@ let insertPictures () = plan {
             ).Plan()
 }
 
+type DeletePictures = SQL<"""
+    delete from pictures
+""">
+
+type DeleteGalleries = SQL<"""
+    delete from galleries
+""">
+
+let deleteAll () = plan {
+    do! DeletePictures.Command().Plan()
+    do! DeleteGalleries.Command().Plan()
+}
+
+let setup = plan {
+    do! deleteAll ()
+    do! insertPictures ()
+}
+
 [<EntryPoint>]
 let main argv =
     migrate ()
 
     use context = new ConnectionContext()
 
-    // (Execution.execute Execution.ExecutionConfig.Default (insertPictures ())).Wait()
+    let config =
+        let log = Execution.ExecutionLog()
+        // let log = Execution.ConsoleExecutionLog()
+        let instance () = Execution.ExecutionInstance(log)
+        { Execution.ExecutionConfig.Default with
+            Instance = instance }
+
+    (Execution.execute config setup).Wait()
 
     let res = GetGalleries.Command().Execute(context)
     for row in res do
