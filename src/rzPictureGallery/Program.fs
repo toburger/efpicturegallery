@@ -33,7 +33,7 @@ type GetPictures = SQL<"""
     where gallery = @gallery
 """>
 
-let insertPictures () = plan {
+let insertData () = plan {
     do! InsertGallery.Command(name = "example", url = Some "http://www.example.com").Plan()
     for x in 1..1000 do
         do! InsertPicture.Command(
@@ -53,14 +53,14 @@ type DeleteGalleries = SQL<"""
     delete from galleries
 """>
 
-let deleteAll () = plan {
+let deleteAllData () = plan {
     do! DeletePictures.Command().Plan()
     do! DeleteGalleries.Command().Plan()
 }
 
-let setup = plan {
-    do! deleteAll ()
-    do! insertPictures ()
+let setupData = plan {
+    do! deleteAllData ()
+    do! insertData ()
 }
 
 [<EntryPoint>]
@@ -76,7 +76,7 @@ let main argv =
         { Execution.ExecutionConfig.Default with
             Instance = instance }
 
-    (Execution.execute config setup).Wait()
+    (Execution.execute config setupData).Wait()
 
     let res = GetGalleries.Command().Execute(context)
     for row in res do
