@@ -4,16 +4,43 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="EFCore\Utilities\SharedTypeExtensions.fs" />
+    <Compile Include="EFCore\Utilities\EntityFrameworkExtensions.fs" />
+    <Compile Include="EFCore\Utilities\IndentedStringBuilderUtilities.fs" />
+    <Compile Include="EFCore\Internal\FSharpHelper.fs" />
+    <Compile Include="EFCore\Internal\FSharpUtilities.fs" />
+    <Compile Include="EFCore\ValueConverters\Converters.fs" />
+    <Compile Include="EFCore\Scaffolding\FSharpDbContextGenerator.fs" />
+    <Compile Include="EFCore\Scaffolding\FSharpEntityTypeGenerator.fs" />
+    <Compile Include="EFCore\Scaffolding\Internal\FSharpModelGenerator.fs" />
+    <Compile Include="EFCore\Migrations\Design\FSharpSnapshotGenerator.fs" />
+    <Compile Include="EFCore\Migrations\Design\FSharpMigrationOperationGenerator.fs" />
+    <Compile Include="EFCore\Migrations\Design\FSharpMigrationsGeneratorDependencies.fs" />
+    <Compile Include="EFCore\Migrations\Design\FSharpMigrationsGenerator.fs" />
+    <Compile Include="EFCore\Migrations\Design\FSharpMigrationsScaffolder.fs" />
+    <Compile Include="EFCore\Extensions\ModelBuilderExtensions.fs" />
+    <Compile Include="EFCore\EFCoreFSharpServices.fs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Interop.fs" />
     <Compile Include="Model.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Migrations/**/*.fs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Gallery.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="1.1.0" />
+    <!-- <PackageReference Include="EntityFrameworkCore.FSharp" Version="0.0.1-alpha1" /> -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.5" />
     <PackageReference Include="TaskBuilder.fs" Version="2.1.*" />
   </ItemGroup>
+  <!-- <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Workspace\oss\EFCore.FSharp\src\EFCore.FSharp\EFCore.FSharp.fsproj" />
+  </ItemGroup> -->
 </Project>

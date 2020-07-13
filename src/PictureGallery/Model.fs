@@ -6,6 +6,7 @@ open Microsoft.Extensions.Logging
 open Microsoft.EntityFrameworkCore.Design
 open System.Collections.Generic
 open Microsoft.EntityFrameworkCore.Storage.ValueConversion
+open EntityFrameworkCore.FSharp.Extensions
 
 type [<CLIMutable>] Gallery =
     { Name: string
@@ -34,6 +35,8 @@ and [<CLIMutable>] GalleryTag =
 type DbContext(connectionString: string) =
     inherit Microsoft.EntityFrameworkCore.DbContext()
         override _.OnConfiguring(optionsBuilder) =
+            base.OnConfiguring(optionsBuilder)
+
             optionsBuilder
                 .UseSqlite(connectionString, fun sqliteOptionsBuilder -> 
                     sqliteOptionsBuilder.CommandTimeout(Nullable 5)
@@ -46,6 +49,8 @@ type DbContext(connectionString: string) =
                 .UseSnakeCaseNamingConvention()
                 |> ignore
         override _.OnModelCreating(modelBuilder) =
+            base.OnModelCreating(modelBuilder)
+
             // Setup galleries table
             modelBuilder
                 .Entity<Gallery>()
@@ -116,6 +121,8 @@ type DbContext(connectionString: string) =
                         .Property(property.Name)
                         .HasConversion(DateTimeOffsetToBinaryConverter())
                         |> ignore
+
+            modelBuilder.RegisterOptionTypes()
     member self.Galleries = self.Set<Gallery>()
     member self.Pictures = self.Set<Picture>()
 
