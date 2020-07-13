@@ -1,0 +1,6 @@
+{
+    "backend": "sqlite",
+    "connectionname": "pictures",
+    "optionals": "f#",
+    "migrations": "."
+}

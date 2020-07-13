@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Rezoom.SQL\src\Rezoom.SQL.Provider\Rezoom.SQL.Provider.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="rzsql.json" />
+    <Content Include="*.model.sql" />
+    <Content Include="rzPictureGallery.dll.config" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SQLite" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.5" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+[submodule "src/Rezoom.SQL"]
+	path = src/Rezoom.SQL
+	url = https://github.com/toburger/Rezoom.SQL
