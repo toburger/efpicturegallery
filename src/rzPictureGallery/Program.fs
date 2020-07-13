@@ -18,13 +18,14 @@ type InsertGallery = SQL<"""
 """>
 
 type GetGalleries = SQL<"""
-    select g.name, g.url, count(*) count, max(p.created) created from galleries g
-    left join pictures p on g.name = p.gallery
+    select coalesce(g.name, '<unnamed>') name, g.url, count(*) count, max(p.created) created from pictures p
+    left join galleries g on p.gallery = g.name
     group by g.name, g.url
 """>
 
 type InsertPicture = SQL<"""
-    insert into pictures(filename, gallery, width, height, created) values (@filename, @gallery, @width, @height, @created)
+    insert into pictures(filename, gallery, width, height, created)
+    values (@filename, @gallery, @width, @height, @created)
 """>
 
 type GetPictures = SQL<"""
