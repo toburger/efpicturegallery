@@ -27,6 +27,13 @@ type GetGalleries = SQL<"""
     group by g.name, g.url
 """>
 
+type GetGalleriesWithTags = SQL<"""
+    select g.name, g.url, count(*) count, max(p.created) created, gt.tag from pictures p
+    left join galleries g on p.gallery = g.name
+    left join gallery_tags gt on g.name = gt.gallery
+    group by g.name, g.url, gt.tag
+""">
+
 type InsertPicture = SQL<"""
     insert into pictures(filename, gallery, width, height, created)
     values (@filename, @gallery, @width, @height, @created)
@@ -85,11 +92,16 @@ let main argv =
         { Execution.ExecutionConfig.Default with
             Instance = instance }
 
-    (Execution.execute config setupData).Wait()
+    // (Execution.execute config setupData).Wait()
 
-    let res = GetGalleries.Command().Execute(context)
-    for row in res do
-        printfn "%A" (row.name, row.url, row.count, row.created)
+    let res = GetGalleriesWithTags.Command().Execute(context)
+    for (name, url, count, created), row in res |> Seq.groupBy (fun row -> row.name, row.url, row.count, row.created) do
+        let tags = row |> Seq.choose (fun x -> x.tag) |> Seq.toArray
+        printfn "%A" {| Name = name
+                        Url = url
+                        Count = count
+                        Created = created
+                        Tags = tags |}
         // for picture in GetPictures.Command(gallery = row.name).Execute(context) do
         //     printfn "> %s" picture.filename
 
