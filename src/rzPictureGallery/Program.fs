@@ -17,6 +17,10 @@ type InsertGallery = SQL<"""
     insert into galleries(name, url) values (@name, @url)
 """>
 
+type InsertTag = SQL<"""
+    insert into gallery_tags(tag, gallery) values (@tag, @gallery)
+""">
+
 type GetGalleries = SQL<"""
     select coalesce(g.name, '<unnamed>') name, g.url, count(*) count, max(p.created) created from pictures p
     left join galleries g on p.gallery = g.name
@@ -35,6 +39,8 @@ type GetPictures = SQL<"""
 
 let insertData () = plan {
     do! InsertGallery.Command(name = "example", url = Some "http://www.example.com").Plan()
+    for tag in ['a'..'d'] do
+        do! InsertTag.Command(tag = string tag, gallery = "example").Plan()
     for x in 1..100_000 do
         do! InsertPicture.Command(
                 filename = (sprintf "hello-%i" x),
@@ -79,7 +85,7 @@ let main argv =
         { Execution.ExecutionConfig.Default with
             Instance = instance }
 
-    // (Execution.execute config setupData).Wait()
+    (Execution.execute config setupData).Wait()
 
     let res = GetGalleries.Command().Execute(context)
     for row in res do
