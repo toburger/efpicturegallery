@@ -2,7 +2,6 @@
 open Rezoom
 open Rezoom.SQL
 open Rezoom.SQL.Migrations
-open Rezoom.SQL.Synchronous
 open Rezoom.SQL.Plans
 
 type GalleriesModel = SQLModel<".">
@@ -79,15 +78,12 @@ let setupData = plan {
 let queryData = plan {
     printfn "Executing query..."
     let! res = GetGalleriesWithTags.Command().Plan()
-    for (name, url, count, lastUpdate), row in res |> Seq.groupBy (fun row -> row.name, row.url, row.count, row.last_update) do
-        let tags = row |> Seq.choose (fun x -> x.tag) |> Seq.toArray
-        printfn "%A" {| Name = name
-                        Url = url
-                        Count = count
-                        LastUpdate = lastUpdate
-                        Tags = tags |}
-        // for picture in GetPictures.Command(gallery = row.name).Execute(context) do
-        //     printfn "> %s" picture.filename
+    for row in res do
+        printfn "%A" {| Name = row.name
+                        Url = row.url
+                        Count = row.count
+                        LastUpdate = row.last_update
+                        Tags = row.tags |> Seq.map (fun t -> t.tag) |> Seq.toArray |}
 }
 
 [<EntryPoint>]
