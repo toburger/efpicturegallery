@@ -95,11 +95,8 @@ let queryData = plan {
 
 [<EntryPoint>]
 let main argv =
-    printfn "Migrate..."
-    migrate ()
-
-    printfn "Creating context..."
-    use context = new ConnectionContext()
+    // printfn "Migrate..."
+    // migrate ()
 
     let config =
         let log = Execution.ExecutionLog()
