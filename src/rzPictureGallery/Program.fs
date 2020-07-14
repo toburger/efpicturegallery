@@ -28,10 +28,7 @@ type GetGalleries = SQL<"""
 """>
 
 type GetGalleriesWithTags = SQL<"""
-    select g.name, g.url, count(*) count, max(p.created) last_update, gt.tag from pictures p
-    left join galleries g on p.gallery = g.name
-    left join gallery_tags gt on g.name = gt.gallery
-    group by g.name, g.url, gt.tag
+    select * from galleries_with_tags
 """>
 
 type InsertPicture = SQL<"""
@@ -95,8 +92,8 @@ let queryData = plan {
 
 [<EntryPoint>]
 let main argv =
-    // printfn "Migrate..."
-    // migrate ()
+    printfn "Migrate..."
+    migrate ()
 
     let config =
         let log = Execution.ExecutionLog()
