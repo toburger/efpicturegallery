@@ -13,11 +13,21 @@ let migrate () =
     GalleriesModel.Migrate(config, "pictures")  //, "Data Source=c:/temp/pictures.db")
 
 type InsertGallery = SQL<"""
+vendor sqlite {
+    insert into galleries(name, url) values ({@name}, {@url})
+    on conflict(name) do update set url = {@url}
+} imagine {
     insert into galleries(name, url) values (@name, @url)
+}
 """>
 
 type InsertTag = SQL<"""
+vendor sqlite {
+    insert into gallery_tags(tag, gallery) values ({@tag}, {@gallery})
+    on conflict(tag, gallery) do nothing
+} imagine {
     insert into gallery_tags(tag, gallery) values (@tag, @gallery)
+}
 """>
 
 type GetGalleriesWithTag = SQL<"""
@@ -39,8 +49,23 @@ type GetGalleriesWithoutTag = SQL<"""
 """>
 
 type InsertPicture = SQL<"""
+vendor sqlite {
+    insert into pictures(filename, gallery, width, height, created)
+    values
+        ( {@filename}
+        , {@gallery}
+        , {@width}
+        , {@height}
+        , {@created}
+        )
+    on conflict(filename, gallery) do update set
+        width = {@width}
+        , height = {@height}
+        , created = {@created}
+} imagine {
     insert into pictures(filename, gallery, width, height, created)
     values (@filename, @gallery, @width, @height, @created)
+}
 """>
 
 type GetPictures = SQL<"""
@@ -83,8 +108,8 @@ let deleteAllData () = plan {
 }
 
 let setupData = plan {
-    printfn "Delete existing data"
-    do! deleteAllData ()
+    // printfn "Delete existing data"
+    // do! deleteAllData ()
     printfn "Insert new data"
     do! insertData ()
     printfn "Finished"
