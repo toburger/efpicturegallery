@@ -1,4 +1,4 @@
-open System
+﻿open System
 open Rezoom
 open Rezoom.SQL
 open Rezoom.SQL.Migrations
@@ -20,14 +20,12 @@ type InsertTag = SQL<"""
     insert into gallery_tags(tag, gallery) values (@tag, @gallery)
 """>
 
-type GetGalleries = SQL<"""
-    select coalesce(g.name, '<unnamed>') name, g.url, count(*) count, max(p.created) last_update from pictures p
-    left join galleries g on p.gallery = g.name
-    group by g.name, g.url
-""">
-
-type GetGalleriesWithTags = SQL<"""
-    select * from galleries_with_tags
+type GetGalleriesWithTag = SQL<"""
+    select distinct *
+    from galleries_with_tags g
+    join gallery_tags gt on g.name = gt.gallery
+    where case when @with_tags then tag in @tags else true end
+    order by g.last_update desc
 """>
 
 type InsertPicture = SQL<"""
@@ -82,15 +80,19 @@ let setupData = plan {
     printfn "Finished"
 }
 
-let queryData = plan {
+let queryData tags = plan {
     printfn "Executing query..."
-    let! res = GetGalleriesWithTags.Command().Plan()
+    let! res =
+        GetGalleriesWithTag.Command(
+            with_tags = Option.isSome tags,
+            tags = List.toArray (defaultArg tags [])
+        ).Plan()
     for row in res do
         printfn "%A" {| Name = row.name
                         Url = row.url
                         Count = row.count
                         LastUpdate = row.last_update
-                        Tags = row.tags |> Seq.map (fun t -> t.tag) |> Seq.toArray |}
+                        Tags = [| for tag in row.tags -> tag.tag |] |}
 }
 
 [<EntryPoint>]
@@ -107,7 +109,8 @@ let main argv =
 
     (Execution.execute config setupData).Wait()
 
-    (Execution.execute config queryData).Wait()
+    let tags = Some [ "tag-a" ]
+    (Execution.execute config (queryData tags)).Wait()
 
     printfn "Finished"
 
