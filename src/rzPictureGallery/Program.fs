@@ -28,6 +28,16 @@ type GetGalleriesWithTag = SQL<"""
     order by g.last_update desc
 """>
 
+type GetGalleriesWithoutTag = SQL<"""
+    select * from galleries_with_tags
+    except
+        select distinct g.*
+        from galleries_with_tags g
+        join gallery_tags gt on g.name = gt.gallery
+        where case when @with_tags then tag in @tags else true end
+        
+""">
+
 type InsertPicture = SQL<"""
     insert into pictures(filename, gallery, width, height, created)
     values (@filename, @gallery, @width, @height, @created)
