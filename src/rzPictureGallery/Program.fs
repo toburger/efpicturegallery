@@ -1,4 +1,4 @@
-﻿open System
+open System
 open Rezoom
 open Rezoom.SQL
 open Rezoom.SQL.Migrations
@@ -41,13 +41,20 @@ type GetPictures = SQL<"""
 """>
 
 let insertData () = plan {
-    do! InsertGallery.Command(name = "example", url = Some "http://www.example.com").Plan()
-    for tag in ['a'..'d'] do
-        do! InsertTag.Command(tag = sprintf "tag-%c" tag, gallery = "example").Plan()
+    let galleryNames = [ for x in 1..10 -> sprintf "gallery-%i" x ]
+    for i, galleryName in List.indexed galleryNames do
+        do! InsertGallery.Command(name = galleryName, url = Some "http://www.example.com").Plan()
+
+        let tags = if i % 2 <> 0 then ['a'..'b'] else ['c'..'d']
+        for tag in tags do
+            do! InsertTag.Command(tag = sprintf "tag-%c" tag, gallery = galleryName).Plan()
+
+    let galleryNamesOpt = List.toArray (None::List.map Some galleryNames)
     for x in 1..100_000 do
+        let galleryName = galleryNamesOpt.[x % galleryNamesOpt.Length]
         do! InsertPicture.Command(
-                filename = (sprintf "hello-%i" x),
-                gallery = (if x % 2 = 0 then Some "example" else None),
+                filename = (sprintf "picture-%i" x),
+                gallery = galleryName,
                 width = None,
                 height = None,
                 created = Some (DateTime(2000, 01, 01).AddHours(float x))
@@ -98,7 +105,7 @@ let main argv =
         { Execution.ExecutionConfig.Default with
             Instance = instance }
 
-    // (Execution.execute config setupData).Wait()
+    (Execution.execute config setupData).Wait()
 
     (Execution.execute config queryData).Wait()
 
