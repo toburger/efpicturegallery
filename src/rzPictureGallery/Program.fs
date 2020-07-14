@@ -35,10 +35,10 @@ type GetPictures = SQL<"""
 
 let insertData () = plan {
     do! InsertGallery.Command(name = "example", url = Some "http://www.example.com").Plan()
-    for x in 1..1000 do
+    for x in 1..100_000 do
         do! InsertPicture.Command(
                 filename = (sprintf "hello-%i" x),
-                gallery = (Some "example"),
+                gallery = (if x % 2 = 0 then Some "example" else None),
                 width = None,
                 height = None,
                 created = None
@@ -59,8 +59,11 @@ let deleteAllData () = plan {
 }
 
 let setupData = plan {
+    printfn "Delete existing data"
     do! deleteAllData ()
+    printfn "Insert new data"
     do! insertData ()
+    printfn "Finished"
 }
 
 [<EntryPoint>]
@@ -76,7 +79,7 @@ let main argv =
         { Execution.ExecutionConfig.Default with
             Instance = instance }
 
-    (Execution.execute config setupData).Wait()
+    // (Execution.execute config setupData).Wait()
 
     let res = GetGalleries.Command().Execute(context)
     for row in res do
