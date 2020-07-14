@@ -79,22 +79,9 @@ let setupData = plan {
     printfn "Finished"
 }
 
-[<EntryPoint>]
-let main argv =
-    migrate ()
-
-    use context = new ConnectionContext()
-
-    let config =
-        let log = Execution.ExecutionLog()
-        // let log = Execution.ConsoleExecutionLog()
-        let instance () = Execution.ExecutionInstance(log)
-        { Execution.ExecutionConfig.Default with
-            Instance = instance }
-
-    (Execution.execute config setupData).Wait()
-
-    let res = GetGalleriesWithTags.Command().Execute(context)
+let queryData = plan {
+    printfn "Executing query..."
+    let! res = GetGalleriesWithTags.Command().Plan()
     for (name, url, count, lastUpdate), row in res |> Seq.groupBy (fun row -> row.name, row.url, row.count, row.last_update) do
         let tags = row |> Seq.choose (fun x -> x.tag) |> Seq.toArray
         printfn "%A" {| Name = name
@@ -104,5 +91,27 @@ let main argv =
                         Tags = tags |}
         // for picture in GetPictures.Command(gallery = row.name).Execute(context) do
         //     printfn "> %s" picture.filename
+}
+
+[<EntryPoint>]
+let main argv =
+    printfn "Migrate..."
+    migrate ()
+
+    printfn "Creating context..."
+    use context = new ConnectionContext()
+
+    let config =
+        let log = Execution.ExecutionLog()
+        // let log = Execution.ConsoleExecutionLog()
+        let instance () = Execution.ExecutionInstance(log)
+        { Execution.ExecutionConfig.Default with
+            Instance = instance }
+
+    // (Execution.execute config setupData).Wait()
+
+    (Execution.execute config queryData).Wait()
+
+    printfn "Finished"
 
     0
