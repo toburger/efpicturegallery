@@ -22,13 +22,13 @@ type InsertTag = SQL<"""
 """>
 
 type GetGalleries = SQL<"""
-    select coalesce(g.name, '<unnamed>') name, g.url, count(*) count, max(p.created) created from pictures p
+    select coalesce(g.name, '<unnamed>') name, g.url, count(*) count, max(p.created) last_update from pictures p
     left join galleries g on p.gallery = g.name
     group by g.name, g.url
 """>
 
 type GetGalleriesWithTags = SQL<"""
-    select g.name, g.url, count(*) count, max(p.created) created, gt.tag from pictures p
+    select g.name, g.url, count(*) count, max(p.created) last_update, gt.tag from pictures p
     left join galleries g on p.gallery = g.name
     left join gallery_tags gt on g.name = gt.gallery
     group by g.name, g.url, gt.tag
@@ -47,14 +47,14 @@ type GetPictures = SQL<"""
 let insertData () = plan {
     do! InsertGallery.Command(name = "example", url = Some "http://www.example.com").Plan()
     for tag in ['a'..'d'] do
-        do! InsertTag.Command(tag = string tag, gallery = "example").Plan()
+        do! InsertTag.Command(tag = sprintf "tag-%c" tag, gallery = "example").Plan()
     for x in 1..100_000 do
         do! InsertPicture.Command(
                 filename = (sprintf "hello-%i" x),
                 gallery = (if x % 2 = 0 then Some "example" else None),
                 width = None,
                 height = None,
-                created = None
+                created = Some (DateTime(2000, 01, 01).AddHours(float x))
             ).Plan()
 }
 
@@ -92,15 +92,15 @@ let main argv =
         { Execution.ExecutionConfig.Default with
             Instance = instance }
 
-    // (Execution.execute config setupData).Wait()
+    (Execution.execute config setupData).Wait()
 
     let res = GetGalleriesWithTags.Command().Execute(context)
-    for (name, url, count, created), row in res |> Seq.groupBy (fun row -> row.name, row.url, row.count, row.created) do
+    for (name, url, count, lastUpdate), row in res |> Seq.groupBy (fun row -> row.name, row.url, row.count, row.last_update) do
         let tags = row |> Seq.choose (fun x -> x.tag) |> Seq.toArray
         printfn "%A" {| Name = name
                         Url = url
                         Count = count
-                        Created = created
+                        LastUpdate = lastUpdate
                         Tags = tags |}
         // for picture in GetPictures.Command(gallery = row.name).Execute(context) do
         //     printfn "> %s" picture.filename
